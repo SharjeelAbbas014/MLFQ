@@ -116,13 +116,7 @@ processList = []
 length = []
 curr = 0
 waitingTimes = {}
-
-
-def increaseWaitWhole(n, p):
-    for key, value in waitingTimes.items():
-        if (key != p.getPID()):
-            waitingTimes[key] += n
-
+bursts = {}
 
 def round_robin(quantum, q):
     global curr
@@ -137,11 +131,9 @@ def round_robin(quantum, q):
     if (proc.getBurstTime() - quantum < 0):
         curr += proc.getBurstTime()
         proc.clrBurst()
-        increaseWaitWhole(proc.getBurstTime(), proc)
         turnAroundTimes[proc.getPID()] = curr - proc.getArrivalTime()
     else:
         proc.decreaseTime(quantum)
-        increaseWaitWhole(quantum, proc)
         curr += quantum
     if proc.getPID() not in responseTimes.keys():
         responseTimes[proc.getPID()] = curr
@@ -162,7 +154,6 @@ def srtf(q):
     curr += p.getBurstTime()
     length.append(curr)
     processList.append((p.getPID()))
-    increaseWaitWhole(p.getBurstTime(), p)
     turnAroundTimes[p.getPID()] = curr - p.getArrivalTime()
 
 
@@ -196,6 +187,7 @@ def addDataToQueue():
             df = df.iloc[1:]
             waitingTimes[pro.getPID()] = 0
             q0.enqueue(pro)
+            bursts[pro.getPID()] = pro.getBurstTime()
 
 
 while q0.size() != 0 or q1.size() != 0 or q2.size() != 0 or len(df) != 0:
@@ -224,6 +216,9 @@ while q0.size() != 0 or q1.size() != 0 or q2.size() != 0 or len(df) != 0:
         printQueue()
     if (startCurr == curr):
         curr += 1
+
+for key,value in turnAroundTimes.items():
+    waitingTimes[key] = value - bursts[key] 
 
 print("********************************************")
 print("Waiting Time of All Processes")
